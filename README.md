@@ -4,6 +4,9 @@ PKG renamer for PS4 pkg files by n1ghty
 This file is based on
 - *UnPKG rev 0x00000008 (public edition), (c) flatz*
 - *Python SFO Parser by: Chris Kreager a.k.a LanThief*
+<br><br>
+The pkg files will be renamed to the sony format.  
+(e.g. UP4511-CUSA01127_00-PPPPPPPPTTTTTTTT-A0100-V0100.pkg)
 
 ### Usage
 `python pkg_rename.py <your_pkg_file>`  
