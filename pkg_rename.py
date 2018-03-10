@@ -1,15 +1,17 @@
-## pkg_rename v1.00 by n1ghty
+## pkg_rename by n1ghty
 ##
 ## This file is based on
 ## UnPKG rev 0x00000008 (public edition), (c) flatz
 ## and
 ## Python SFO Parser by: Chris Kreager a.k.a LanThief
+REL_VERSION = 'v1.01'
 
 import sys, os, struct, traceback
 
 ## parse arguments
 
 if len(sys.argv) < 2:
+	print 'pkg_rename ' + REL_VERSION + ' by n1ghty'
 	script_file_name = os.path.split(sys.argv[0])[1]
 	print 'usage: {0} <pkg file>'.format(script_file_name)
 	sys.exit()
@@ -48,61 +50,19 @@ def str2hex(s, size=8):
 		h = (h << size) | ord(c)
 	return h
 
-
-def hex2hexList(h, size=8, reverse=True):
-	"hex converter to hex list"
-	return hex2hexList_charList(h, size, reverse, False)
-
-
-def hex2hexList_charList(h, size=8, reverse=True, ischr=True):
-	"hex converter to either chr list or hex list"
-	l = []
-	if h == 0x0:
-		if ischr:
-			l.append(chr(h))
-		else:
-			l.append(h)
-		return l
-	while h:
-		_h = (h & mask_bit(size))
-		if ischr:
-			horc = chr(_h)
-		else:
-			horc = _h
-		l.append(horc)
-		h = (h >> size)
-	if reverse: l.reverse()
-	return l
-
-
-def str2hexList(s, size=8, reverse=True):
-	"String converter to hex list"
-	return hex2hexList(str2hex(s), size, reverse)
-
-
-def mask_bit(size=8):
-	if size > 32:
-		return (0x1L << size) - (0x1)
-	else:
-		return (0x1 << size) - (0x1)
-
 def le32(bits):
-	bytes = str2hexList(bits)
 	result = 0x0
 	offset = 0
-	for byte in bytes:
+	for i in xrange(4):
+		byte = ord(bits[i])
 		result |= byte << offset
 		offset += 8
 	return result
 
-
-
 def le16(bits):
-	bytes = str2hexList(bits)
-	if len(bytes) > 1:
-		return (bytes[0] | bytes[1] << 8)
-	return (bytes[0] | 0x0 << 8)
+	return (ord(bits[0]) | ord(bits[1]) << 8)
 
+## classes
 
 class PsfHdr:
 	size = 20
@@ -110,8 +70,8 @@ class PsfHdr:
 	def __init__(self, bits):
 		self.size = 20
 		self.data = bits[:self.size]
-		self.magic = str2hexList(bits[:4])
-		self.rfu000 = str2hexList(bits[4:8])
+		self.magic = le32(bits[:4])
+		self.rfu000 = le32(bits[4:8])
 		self.label_ptr = bits[8:12]
 		self.data_ptr = bits[12:16]
 		self.nsects = bits[16:20]
@@ -136,7 +96,7 @@ class PsfSec:
 	def __len__(self):
 		return self.size
 
-# main code
+## main code
 PsfMagic = "\0PSF"
 PKG_MAGIC = '\x7FCNT'
 CONTENT_ID_SIZE = 0x24
@@ -245,7 +205,7 @@ try:
 
 		pkg_file.close()
 		print "Renaming pkg to " + NEW_FILENAME
-		pkg_new_file_path = os.path.dirname(pkg_file_path) + "\\" + NEW_FILENAME
+		pkg_new_file_path = os.path.dirname(os.path.abspath(pkg_file_path)) + "\\" + NEW_FILENAME
 		if os.path.exists(pkg_new_file_path):
 			raise MyError("file \""+pkg_new_file_path+"\" already exists!")
 		else:
